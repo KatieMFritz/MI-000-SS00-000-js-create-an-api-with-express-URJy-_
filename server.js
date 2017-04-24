@@ -3,61 +3,50 @@ var app = express()
 var bodyParser = require('body-parser')
 app.use(bodyParser.json())
 var port = process.env.PORT || 8080
-var entries = require('./entries.js')
+var todos = require('./todos.js')
 
 app.get('/', function (request, response) {
   response.json({
-    welcome: 'Budgets are helpful!'
+    welcome: 'Let\'s get sh*t done!'
   })
 })
 
-app.get('/entries', function (request, response) {
-  response.json(entries)
+app.get('/todos', function (request, response) {
+  response.json(todos)
 })
 
-app.post('/entries', function (request, response) {
-  var slug = request.body.name.trim().toLowerCase().split(' ').join('-')
-  entries[slug] = {
-    name: request.body.name.trim(),
-    amount: '$' + parseFloat(request.body.amount).toFixed(2),
-    type: request.body.type
+app.post('/todos', function (request, response) {
+  var slug = request.body.task.trim().toLowerCase().split(' ').join('-')
+  todos[slug] = {
+    task: request.body.task.trim(),
+    complete: request.body.complete
   }
-  response.redirect('/entries/' + slug)
+  response.redirect('/todos/' + slug)
 })
 
-app.get('/entries/:slug', function (request, response) {
-  if (!entries[request.params.slug]) {
-    response.status(404).end('sorry, no such entry: ' + request.params.slug)
+app.get('/todos/:slug', function (request, response) {
+  if (!todos[request.params.slug]) {
+    response.status(404).end('sorry, no such task: ' + request.params.slug)
     return
   }
-  response.json(entries[request.params.slug])
+  response.json(todos[request.params.slug])
 })
 
-app.delete('/entries/:slug', function (request, response) {
-  delete entries[request.params.slug]
-  response.redirect('/entries')
+app.delete('/todos/:slug', function (request, response) {
+  delete todos[request.params.slug]
+  response.redirect('/todos')
 })
 
-app.put('/entries/:slug', function (request, response) {
-  var entry = entries[request.params.slug]
-  if (request.body.name) {
-    entry.name = request.body.name.trim()
+app.put('/todos/:slug', function (request, response) {
+  var todo = todos[request.params.slug]
+  if (request.body.task) {
+    todo.task = request.body.task.trim()
   }
-  if (request.body.amouont) {
-    entry.amount = '$' + parseFloat(request.body.amount).toFixed(2)
-  }
-  response.redirect('/entries')
+  response.redirect('/todos')
 })
 
 app.use(function (request, response, next) {
   response.status(404).end(request.url + ' not found')
-})
-
-app.use(function (request, response, next) {
-  response.header('Access-Control-Allow-Origin', '*')
-  response.header('Access-Control-Allow-Methods', 'POST, GET, DELETE, PUT')
-  response.header('Access-Control-Allow-Headers', 'Content-Type')
-  next()
 })
 
 app.listen(port)
